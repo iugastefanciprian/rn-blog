@@ -3,6 +3,14 @@ import jsonServer from '../api/jsonServer';
 
 const blogReducer = (state, action) => {
   switch (action.type) {
+    case 'get_blogpost':
+      return action.payload;
+    case 'edit_blogpost':
+      return state.map((blogPost) => {
+        return blogPost.id === action.payload.id ? action.payload : blogPost;
+      });
+    case 'delete_blogpost':
+      return state.filter((blogPost) => blogPost.id !== action.payload);
     case 'add_blogpost':
       return [
         ...state,
@@ -12,14 +20,6 @@ const blogReducer = (state, action) => {
           content: action.payload.content,
         },
       ];
-    case 'delete_blogpost':
-      return state.filter((blogPost) => blogPost.id !== action.payload);
-    case 'edit_blogpost':
-      return state.map((blogPost) => {
-        return blogPost.id === action.payload.id ? action.payload : blogPost;
-      });
-    case 'get_blogpost':
-      return [action.payload];
     default:
       return state;
   }
@@ -27,11 +27,9 @@ const blogReducer = (state, action) => {
 
 const getBlogPosts = (dispatch) => {
   return async () => {
-    const response = await jsonServer
-      .get('/blogposts')
-      .catch((error) => console.log(error));
-
-    dispatch({ type: 'get_blogposts', payload: response });
+    const response = await jsonServer.get('/blogposts');
+    await sleep(3000);
+    dispatch({ type: 'get_blogposts', payload: response.data });
   };
 };
 
@@ -59,6 +57,10 @@ const editBlogPost = (dispatch) => {
     });
     callback();
   };
+};
+
+const sleep = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 export const { Context, Provider } = createDataContext(
