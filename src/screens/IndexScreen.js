@@ -14,11 +14,19 @@ const IndexScreen = ({ navigation }) => {
   const { state, deleteBlogPost, getBlogPosts } = useContext(Context);
 
   useEffect(() => {
-    getBlogPosts().catch((error) => console.log(error));
+    getBlogPosts();
+
+    const listener = navigation.addListener('didFocus', () => {
+      getBlogPosts();
+    });
+
+    return () => {
+      listener.remove();
+    };
   }, []);
 
   return (
-    <>
+    <View>
       <FlatList
         data={state}
         keyExtractor={(blogPost) => blogPost.title}
@@ -28,7 +36,9 @@ const IndexScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Show', { id: item.id })}
             >
               <View style={styles.row}>
-                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.title}>
+                  {item.title} - {item.id}
+                </Text>
                 <TouchableOpacity onPress={() => deleteBlogPost(item.id)}>
                   <Feather style={styles.icon} name="trash" />
                 </TouchableOpacity>
@@ -37,7 +47,7 @@ const IndexScreen = ({ navigation }) => {
           );
         }}
       />
-    </>
+    </View>
   );
 };
 

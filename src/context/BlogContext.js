@@ -3,23 +3,10 @@ import jsonServer from '../api/jsonServer';
 
 const blogReducer = (state, action) => {
   switch (action.type) {
-    case 'get_blogpost':
+    case 'get_blogposts':
       return action.payload;
-    case 'edit_blogpost':
-      return state.map((blogPost) => {
-        return blogPost.id === action.payload.id ? action.payload : blogPost;
-      });
     case 'delete_blogpost':
       return state.filter((blogPost) => blogPost.id !== action.payload);
-    case 'add_blogpost':
-      return [
-        ...state,
-        {
-          id: Math.floor(Math.random() * 99999),
-          title: action.payload.title,
-          content: action.payload.content,
-        },
-      ];
     default:
       return state;
   }
@@ -29,9 +16,6 @@ const getBlogPosts = (dispatch) => {
   return async () => {
     try {
       const response = await jsonServer.get('/blogposts');
-      const res = await fetch(...response);
-      console.log(res);
-
       dispatch({ type: 'get_blogposts', payload: response.data });
     } catch (error) {
       console.error(error);
@@ -39,34 +23,27 @@ const getBlogPosts = (dispatch) => {
   };
 };
 
-const addBlogPost = (dispatch) => {
-  return (title, content, callback) => {
-    dispatch({
-      type: 'add_blogpost',
-      payload: { title, content },
-    });
-    callback();
+const addBlogPost = () => {
+  return async (title, content, callback) => {
+    await jsonServer.post('/blogposts', { title, content });
+
+    if (callback) callback();
   };
 };
 
 const deleteBlogPost = (dispatch) => {
-  return (id) => {
+  return async (id) => {
+    await jsonServer.delete(`/blogposts/${id}`);
     dispatch({ type: 'delete_blogpost', payload: id });
   };
 };
 
-const editBlogPost = (dispatch) => {
-  return (id, title, content, callback) => {
-    dispatch({
-      type: 'edit_blogpost',
-      payload: { id, title, content },
-    });
-    callback();
-  };
-};
+const editBlogPost = () => {
+  return async (id, title, content, callback) => {
+    await jsonServer.put(`/blogposts/${id}`, { title, content });
 
-const sleep = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+    if (callback) callback();
+  };
 };
 
 export const { Context, Provider } = createDataContext(
